@@ -17,6 +17,7 @@ interface Member {
   phones: string | null;
   emails: string | null;
   leaving_year: number | null;
+  houses: string | null;
 }
 
 interface Venue {
@@ -55,6 +56,8 @@ export default function MembersMap() {
   const [radius, setRadius] = useState(30);
   const [minYear, setMinYear] = useState(1947);
   const [maxYear, setMaxYear] = useState(2025);
+  const ALL_HOUSES = ['1','2','3','4','5','6','7','8','9','SH'];
+  const [selectedHouses, setSelectedHouses] = useState<Set<string>>(new Set(ALL_HOUSES));
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
@@ -207,6 +210,7 @@ export default function MembersMap() {
           <strong style="font-size:13px">${m.name}</strong>
           ${m.membership_type ? `<span style="margin-left:6px;font-size:10px;background:#e2e8f0;padding:1px 5px;border-radius:3px">${m.membership_type}</span>` : ""}
           ${addressParts.length ? `<div style="color:#555;font-size:12px;margin-top:4px">${addressParts.join(", ")}</div>` : ""}
+          ${m.leaving_year ? `<div style="font-size:12px;margin-top:4px;color:#555">Left ${m.leaving_year} · ~${2026 - m.leaving_year + 18} yrs${m.houses ? ` · House ${m.houses.split(',')[0]}` : ""}</div>` : ""}
           ${m.phones ? `<div style="font-size:12px;margin-top:4px">📞 ${m.phones}</div>` : ""}
           ${m.emails ? `<div style="font-size:12px;margin-top:2px">✉️ <a href="mailto:${m.emails.split(", ")[0]}">${m.emails}</a></div>` : ""}
         </div>`;
@@ -226,8 +230,13 @@ export default function MembersMap() {
         .sort((a, b) => a.distance - b.distance)
     : members.map((m) => ({ ...m, distance: null }))
   ).filter((m) => {
-    if (m.leaving_year === null) return true; // no year data — include
-    return m.leaving_year >= minYear && m.leaving_year <= maxYear;
+    if (m.leaving_year !== null && (m.leaving_year < minYear || m.leaving_year > maxYear)) return false;
+    if (selectedHouses.size < ALL_HOUSES.length) {
+      const memberHouses = m.houses ? m.houses.split(',') : [];
+      if (memberHouses.length === 0) return true; // no house data — include
+      if (!memberHouses.some((h) => selectedHouses.has(h))) return false;
+    }
+    return true;
   });
 
   const visibleCount = filteredMembers.length;
@@ -236,7 +245,7 @@ export default function MembersMap() {
   useEffect(() => {
     setCheckedIds(new Set(filteredMembers.map((m) => m.id)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedVenueId, minRadius, radius, minYear, maxYear, members]);
+  }, [selectedVenueId, minRadius, radius, minYear, maxYear, selectedHouses, members]);
 
   // Drive indeterminate state on header checkbox
   useEffect(() => {
@@ -338,6 +347,35 @@ export default function MembersMap() {
             onChange={(e) => setMaxYear(Number(e.target.value))}
             className="w-28 accent-green-700"
           />
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-sm font-medium text-gray-700 whitespace-nowrap">House</span>
+          {ALL_HOUSES.map((h) => (
+            <button
+              key={h}
+              onClick={() => {
+                const next = new Set(selectedHouses);
+                next.has(h) ? next.delete(h) : next.add(h);
+                setSelectedHouses(next);
+              }}
+              className={`px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
+                selectedHouses.has(h)
+                  ? "bg-green-700 text-white border-green-700"
+                  : "bg-white text-gray-400 border-gray-300"
+              }`}
+            >
+              {h}
+            </button>
+          ))}
+          {selectedHouses.size < ALL_HOUSES.length && (
+            <button
+              onClick={() => setSelectedHouses(new Set(ALL_HOUSES))}
+              className="text-xs text-gray-400 hover:text-gray-700 underline ml-1"
+            >
+              all
+            </button>
+          )}
         </div>
 
         <div className="ml-auto text-sm text-gray-500">

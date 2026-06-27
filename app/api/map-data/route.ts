@@ -32,7 +32,11 @@ export async function GET() {
           (
             SELECT MAX(h.leaving_year)
             FROM member_houses h WHERE h.member_id = m.id
-          ) AS leaving_year
+          ) AS leaving_year,
+          (
+            SELECT string_agg(h.house_no, ',' ORDER BY h.leaving_year DESC)
+            FROM member_houses h WHERE h.member_id = m.id
+          ) AS houses
         FROM members m
         JOIN member_addresses a ON a.member_id = m.id AND a.is_primary = true
         WHERE a.location IS NOT NULL
