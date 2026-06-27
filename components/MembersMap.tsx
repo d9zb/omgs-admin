@@ -58,6 +58,8 @@ export default function MembersMap() {
   const [maxYear, setMaxYear] = useState(2025);
   const ALL_HOUSES = ['1','2','3','4','5','6','7','8','9','SH'];
   const [selectedHouses, setSelectedHouses] = useState<Set<string>>(new Set(ALL_HOUSES));
+  const [showUnknownHouse, setShowUnknownHouse] = useState(true);
+  const [showUnknownYear, setShowUnknownYear] = useState(true);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
@@ -230,11 +232,23 @@ export default function MembersMap() {
         .sort((a, b) => a.distance - b.distance)
     : members.map((m) => ({ ...m, distance: null }))
   ).filter((m) => {
-    if (m.leaving_year !== null && (m.leaving_year < minYear || m.leaving_year > maxYear)) return false;
+    if (m.leaving_year === null) {
+      if (!showUnknownYear) return false;
+    } else if (m.leaving_year < minYear || m.leaving_year > maxYear) {
+      return false;
+    }
     if (selectedHouses.size > 0 && selectedHouses.size < ALL_HOUSES.length) {
       const memberHouses = m.houses ? m.houses.split(',') : [];
-      if (memberHouses.length === 0) return true; // no house data — include
-      if (!memberHouses.some((h) => selectedHouses.has(h))) return false;
+      if (memberHouses.length === 0) {
+        if (!showUnknownHouse) return false;
+      } else if (!memberHouses.some((h) => selectedHouses.has(h))) {
+        return false;
+      }
+    } else if (selectedHouses.size === 0) {
+      // none selected — only show unknowns if showUnknownHouse, hide everyone else
+      const memberHouses = m.houses ? m.houses.split(',') : [];
+      if (memberHouses.length > 0) return false;
+      if (!showUnknownHouse) return false;
     }
     return true;
   });
@@ -349,6 +363,21 @@ export default function MembersMap() {
           />
         </div>
 
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowUnknownYear((v) => !v)}
+            className={`px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
+              showUnknownYear
+                ? "bg-green-700 text-white border-green-700"
+                : "bg-white text-gray-400 border-gray-300"
+            }`}
+            title="Members with no leaving year data"
+          >
+            ?
+          </button>
+          <span className="text-xs text-gray-400">unknown year</span>
+        </div>
+
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-sm font-medium text-gray-700 whitespace-nowrap">House</span>
           {ALL_HOUSES.map((h) => (
@@ -368,6 +397,17 @@ export default function MembersMap() {
               {h}
             </button>
           ))}
+          <button
+            onClick={() => setShowUnknownHouse((v) => !v)}
+            className={`px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
+              showUnknownHouse
+                ? "bg-green-700 text-white border-green-700"
+                : "bg-white text-gray-400 border-gray-300"
+            }`}
+            title="Members with no house data"
+          >
+            ?
+          </button>
           <button
             onClick={() => setSelectedHouses(new Set(ALL_HOUSES))}
             className="text-xs text-gray-400 hover:text-gray-700 underline ml-1"
