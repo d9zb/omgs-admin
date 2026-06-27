@@ -488,6 +488,7 @@ export default function MembersMap() {
                 </th>
                 <th className="pb-2 pr-4">Name</th>
                 <th className="pb-2 pr-4">Left</th>
+                <th className="pb-2 pr-4">House</th>
                 <th className="pb-2 pr-4">Location</th>
                 <th className="pb-2 pr-4">Phone</th>
                 <th className="pb-2 pr-4">Email</th>
@@ -513,6 +514,9 @@ export default function MembersMap() {
                   <td className="py-2 pr-4 text-gray-500 whitespace-nowrap tabular-nums">
                     {m.leaving_year ?? "—"}
                     {m.leaving_year && <span className="text-gray-400 text-xs ml-1">(~{2026 - m.leaving_year + 18})</span>}
+                  </td>
+                  <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
+                    {m.houses ? m.houses.split(',').join(', ') : "—"}
                   </td>
                   <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
                     {[m.city, m.postcode].filter(Boolean).join(", ")}
