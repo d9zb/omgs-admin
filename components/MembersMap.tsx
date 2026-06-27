@@ -516,6 +516,36 @@ export default function MembersMap() {
               </svg>
               {copied ? "Copied!" : `Copy ${checkedMembers.flatMap((m) => (m.phones ? m.phones.split(", ") : [])).filter((n) => n.startsWith("07")).length} numbers`}
             </button>
+
+            {/* Export CSV */}
+            <button
+              onClick={() => {
+                const headers = ["Name", "Left", "House", "City", "Postcode", "Phone(s)", "Email(s)", ...(selectedVenue ? ["Miles"] : [])];
+                const rows = checkedMembers.map((m) => [
+                  m.name,
+                  m.leaving_year ?? "",
+                  m.houses ? m.houses.split(',').join(', ') : "",
+                  m.city ?? "",
+                  m.postcode ?? "",
+                  m.phones ?? "",
+                  m.emails ?? "",
+                  ...(selectedVenue ? [m.distance !== null ? m.distance!.toFixed(1) : ""] : []),
+                ]);
+                const csv = [headers, ...rows]
+                  .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+                  .join("\n");
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                a.download = `members-${selectedVenue ? selectedVenue.name.replace(/\s+/g, '-').toLowerCase() : 'all'}.csv`;
+                a.click();
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-600 text-white hover:bg-gray-700 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Export {checkedMembers.length}
+            </button>
           </div>
           <table className="w-full text-sm border-collapse">
             <thead>
