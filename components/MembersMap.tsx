@@ -312,7 +312,7 @@ export default function MembersMap() {
 
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-            Left: <span className="text-green-700 font-semibold">{minYear}</span>
+            Left: <span className="text-green-700 font-semibold">{minYear}</span> <span className="text-gray-400">(~{2026 - minYear + 18})</span>
           </label>
           <input
             type="range"
@@ -327,7 +327,7 @@ export default function MembersMap() {
 
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-            to <span className="text-green-700 font-semibold">{maxYear}</span>
+            to <span className="text-green-700 font-semibold">{maxYear}</span> <span className="text-gray-400">(~{2026 - maxYear + 18})</span>
           </label>
           <input
             type="range"
