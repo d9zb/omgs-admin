@@ -61,6 +61,8 @@ export default function MembersMap() {
   const [showUnknownHouse, setShowUnknownHouse] = useState(true);
   const [showUnknownYear, setShowUnknownYear] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [sortCol, setSortCol] = useState<string>("distance");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [copied, setCopied] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
   const headerCheckRef = useRef<HTMLInputElement>(null);
@@ -254,6 +256,27 @@ export default function MembersMap() {
   });
 
   const visibleCount = filteredMembers.length;
+
+  function toggleSort(col: string) {
+    if (sortCol === col) setSortDir((d) => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("asc"); }
+  }
+
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    let av: string | number | null, bv: string | number | null;
+    switch (sortCol) {
+      case "name":     av = a.name;         bv = b.name; break;
+      case "year":     av = a.leaving_year; bv = b.leaving_year; break;
+      case "house":    av = a.houses ?? "";  bv = b.houses ?? ""; break;
+      case "location": av = a.city ?? "";   bv = b.city ?? ""; break;
+      case "distance": av = a.distance;     bv = b.distance; break;
+      default:         av = a.distance;     bv = b.distance;
+    }
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
+    const result = av < bv ? -1 : av > bv ? 1 : 0;
+    return sortDir === "asc" ? result : -result;
+  });
 
   // Reset checkboxes whenever the filtered list changes
   useEffect(() => {
@@ -502,7 +525,7 @@ export default function MembersMap() {
                 const mobiles = checkedMembers
                   .flatMap((m) => (m.phones ? m.phones.split(", ") : []))
                   .filter((n) => n.startsWith("07"))
-                  .join("\n");
+                  .join(", ");
                 navigator.clipboard.writeText(mobiles).then(() => {
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
@@ -560,17 +583,40 @@ export default function MembersMap() {
                     }
                   />
                 </th>
-                <th className="pb-2 pr-4">Name</th>
-                <th className="pb-2 pr-4">Left</th>
-                <th className="pb-2 pr-4">House</th>
-                <th className="pb-2 pr-4">Location</th>
-                <th className="pb-2 pr-4">Phone</th>
-                <th className="pb-2 pr-4">Email</th>
-                {selectedVenue && <th className="pb-2 text-right">Miles</th>}
+                {[
+                  { col: "name", label: "Name" },
+                  { col: "year", label: "Left" },
+                  { col: "house", label: "House" },
+                  { col: "location", label: "Location" },
+                  { col: null, label: "Phone" },
+                  { col: null, label: "Email" },
+                ].map(({ col, label }) => (
+                  <th key={label} className="pb-2 pr-4">
+                    {col ? (
+                      <button
+                        onClick={() => toggleSort(col)}
+                        className="flex items-center gap-1 hover:text-gray-800 transition-colors"
+                      >
+                        {label}
+                        <span className="text-gray-300">
+                          {sortCol === col ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
+                      </button>
+                    ) : label}
+                  </th>
+                ))}
+                {selectedVenue && (
+                  <th className="pb-2 text-right">
+                    <button onClick={() => toggleSort("distance")} className="flex items-center gap-1 ml-auto hover:text-gray-800">
+                      Miles
+                      <span className="text-gray-300">{sortCol === "distance" ? (sortDir === "asc" ? "↑" : "↓") : "↕"}</span>
+                    </button>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {filteredMembers.map((m) => (
+              {sortedMembers.map((m) => (
                 <tr key={m.id} className={`border-b border-gray-100 hover:bg-gray-50 ${checkedIds.has(m.id) ? "" : "opacity-40"}`}>
                   <td className="py-2 pr-3">
                     <input
