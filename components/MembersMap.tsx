@@ -231,7 +231,7 @@ export default function MembersMap() {
     : members.map((m) => ({ ...m, distance: null }))
   ).filter((m) => {
     if (m.leaving_year !== null && (m.leaving_year < minYear || m.leaving_year > maxYear)) return false;
-    if (selectedHouses.size < ALL_HOUSES.length) {
+    if (selectedHouses.size > 0 && selectedHouses.size < ALL_HOUSES.length) {
       const memberHouses = m.houses ? m.houses.split(',') : [];
       if (memberHouses.length === 0) return true; // no house data — include
       if (!memberHouses.some((h) => selectedHouses.has(h))) return false;
@@ -368,14 +368,18 @@ export default function MembersMap() {
               {h}
             </button>
           ))}
-          {selectedHouses.size < ALL_HOUSES.length && (
-            <button
-              onClick={() => setSelectedHouses(new Set(ALL_HOUSES))}
-              className="text-xs text-gray-400 hover:text-gray-700 underline ml-1"
-            >
-              all
-            </button>
-          )}
+          <button
+            onClick={() => setSelectedHouses(new Set(ALL_HOUSES))}
+            className="text-xs text-gray-400 hover:text-gray-700 underline ml-1"
+          >
+            all
+          </button>
+          <button
+            onClick={() => setSelectedHouses(new Set())}
+            className="text-xs text-gray-400 hover:text-gray-700 underline"
+          >
+            none
+          </button>
         </div>
 
         <div className="ml-auto text-sm text-gray-500">
