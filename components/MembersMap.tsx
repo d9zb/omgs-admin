@@ -16,6 +16,7 @@ interface Member {
   lng: number;
   phones: string | null;
   emails: string | null;
+  leaving_year: number | null;
 }
 
 interface Venue {
@@ -52,6 +53,8 @@ export default function MembersMap() {
   const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null);
   const [minRadius, setMinRadius] = useState(0);
   const [radius, setRadius] = useState(30);
+  const [minYear, setMinYear] = useState(1947);
+  const [maxYear, setMaxYear] = useState(2025);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
@@ -216,12 +219,16 @@ export default function MembersMap() {
 
   const selectedVenue = venues.find((v) => v.id === selectedVenueId) ?? null;
 
-  const filteredMembers = selectedVenue
+  const filteredMembers = (selectedVenue
     ? members
         .map((m) => ({ ...m, distance: haversineMiles(m.lat, m.lng, selectedVenue.lat, selectedVenue.lng) }))
         .filter((m) => m.distance >= minRadius && m.distance <= radius)
         .sort((a, b) => a.distance - b.distance)
-    : members.map((m) => ({ ...m, distance: null }));
+    : members.map((m) => ({ ...m, distance: null }))
+  ).filter((m) => {
+    if (m.leaving_year === null) return true; // no year data — include
+    return m.leaving_year >= minYear && m.leaving_year <= maxYear;
+  });
 
   const visibleCount = filteredMembers.length;
 
@@ -229,7 +236,7 @@ export default function MembersMap() {
   useEffect(() => {
     setCheckedIds(new Set(filteredMembers.map((m) => m.id)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedVenueId, minRadius, radius, members]);
+  }, [selectedVenueId, minRadius, radius, minYear, maxYear, members]);
 
   // Drive indeterminate state on header checkbox
   useEffect(() => {
@@ -300,6 +307,36 @@ export default function MembersMap() {
             disabled={!selectedVenueId}
             onChange={(e) => setRadius(Number(e.target.value))}
             className="w-28 accent-green-700 disabled:opacity-40"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            Left: <span className="text-green-700 font-semibold">{minYear}</span>
+          </label>
+          <input
+            type="range"
+            min={1947}
+            max={maxYear - 1}
+            step={1}
+            value={minYear}
+            onChange={(e) => setMinYear(Number(e.target.value))}
+            className="w-28 accent-green-700"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            to <span className="text-green-700 font-semibold">{maxYear}</span>
+          </label>
+          <input
+            type="range"
+            min={minYear + 1}
+            max={2025}
+            step={1}
+            value={maxYear}
+            onChange={(e) => setMaxYear(Number(e.target.value))}
+            className="w-28 accent-green-700"
           />
         </div>
 
