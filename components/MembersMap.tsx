@@ -587,7 +587,7 @@ export default function MembersMap() {
                   { col: "name", label: "Name" },
                   { col: "year", label: "Left" },
                   { col: "house", label: "House" },
-                  { col: "location", label: "Location" },
+                  { col: null, label: "Location" },
                   { col: null, label: "Phone" },
                   { col: null, label: "Email" },
                 ].map(({ col, label }) => (
