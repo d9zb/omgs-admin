@@ -265,7 +265,7 @@ export default function MembersMap() {
   const sortedMembers = [...filteredMembers].sort((a, b) => {
     let av: string | number | null, bv: string | number | null;
     switch (sortCol) {
-      case "name":     av = a.name;         bv = b.name; break;
+      case "name":     av = a.name.split(" ").slice(-1)[0]; bv = b.name.split(" ").slice(-1)[0]; break;
       case "year":     av = a.leaving_year; bv = b.leaving_year; break;
       case "house":    av = a.houses ?? "";  bv = b.houses ?? ""; break;
       case "location": av = a.city ?? "";   bv = b.city ?? ""; break;
